@@ -1,0 +1,102 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# COCO8 dataset (first 8 images from COCO train2017) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/coco8/
+# Example usage: yolo train data=coco8.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco8  ← downloads here (1 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/coco8 # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
+
+# Classes
+names:
+  0: Pessoa
+  1: Bicicleta
+  2: Carro
+  3: Motocicleta
+  4: Avião
+  5: Ônibus
+  6: Trem
+  7: Caminhão
+  8: Barco
+  9: Semáforo
+  10: Hidrante
+  11: Placa de parada
+  12: Parquímetro
+  13: Banco
+  14: Pássaro
+  15: Gato
+  16: Cachorro
+  17: Cavalo
+  18: Ovelha
+  19: Vaca
+  20: Elefante
+  21: Urso
+  22: Zebra
+  23: Girafa
+  24: Mochila
+  25: Guarda-chuva
+  26: Bolsa
+  27: Gravata
+  28: Mala
+  29: Frisbee
+  30: Esquis
+  31: Snowboard
+  32: Bola de esporte
+  33: Pipa
+  34: Taco de beisebol
+  35: Luva de beisebol
+  36: Skate
+  37: Prancha de surfe
+  38: Raquete de tênis
+  39: Garrafa
+  40: Taça de vinho
+  41: Copo
+  42: Garfo
+  43: Faca
+  44: Colher
+  45: Tigela
+  46: Banana
+  47: Maçã
+  48: Sanduíche
+  49: Laranja
+  50: Brócolis
+  51: Cenoura
+  52: Cachorro-quente
+  53: Pizza
+  54: Rosquinha
+  55: Bolo
+  56: Cadeira
+  57: Sofá
+  58: Planta em vaso
+  59: Cama
+  60: Mesa de jantar
+  61: Vaso sanitário
+  62: Televisão
+  63: Laptop
+  64: Mouse
+  65: Controle remoto
+  66: Teclado
+  67: Celular
+  68: Micro-ondas
+  69: Forno
+  70: Torradeira
+  71: Pia
+  72: Geladeira
+  73: Livro
+  74: Relógio
+  75: Vaso
+  76: Tesoura
+  77: Urso de pelúcia
+  78: Secador de cabelo
+  79: Escova de dentes
+
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.zip
