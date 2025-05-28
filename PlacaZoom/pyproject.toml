@@ -1,6 +1,6 @@
 [project]
 name = "placazoom"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,7 +24,7 @@ product = "placazoom"
 company = "Flet"
 
 # copyright text to display in about app dialogs
-copyright = "Copyright (C) 2025 by Flet"
+copyright = "Copyright (C) 2025 by Sidney T. A. Junior"
 
 [tool.flet.app]
 path = "src"

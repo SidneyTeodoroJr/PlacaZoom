@@ -1,34 +1,19 @@
-from subprocess import Popen, DEVNULL
-from sys import executable
-from os import path, makedirs, environ
-from os.path import dirname, expanduser, join
-
-from cv2 import VideoCapture, imencode
+import threading
 import asyncio
 import base64
-from httpx import AsyncClient
-import threading
+from os import makedirs
+from os.path import expanduser, join
+
+from cv2 import VideoCapture
 
 from flet import (
-    Page, Colors, IconButton, Icons, BottomAppBar, 
+    Page, Colors, IconButton, Icons, BottomAppBar,
     ImageFit, ImageRepeat, FloatingActionButtonLocation,
     Row, FloatingActionButton, CircleBorder, Offset, app,
-    ThemeMode, MainAxisAlignment, CrossAxisAlignment, Image, 
+    ThemeMode, MainAxisAlignment, CrossAxisAlignment, Image,
 )
 
-API_URL = "http://127.0.0.1:8000/detect"
-
-# --- Start: Automatically run the API ---
-def start_api():
-    api_path = path.join(path.dirname(__file__), "api.py")
-    Popen(
-        [executable, api_path],
-        stdout=DEVNULL,  # Hide output
-        stderr=DEVNULL   # Hide errors in main console
-    )
-
-start_api()
-# --- End: Automatically run the API ---
+from back import process_image  # Importa do back-end
 
 class AppState:
     def __init__(self):
@@ -40,6 +25,7 @@ class AppState:
 
 def main(page: Page):
     page.padding = 0
+    page.window.center()
     page.title = "PlacaZoom"
     page.bgcolor = Colors.BLACK
     page.theme_mode = ThemeMode.LIGHT
@@ -136,55 +122,44 @@ def main(page: Page):
     page.add(image_display)
 
     async def camera_loop():
-        async with AsyncClient(timeout=10) as client:
-            while True:
-                if not state.cap.isOpened():
-                    print("Camera not available.")
-                    await asyncio.sleep(1)
-                    continue
-                ret, frame = state.cap.read()
-                if not ret:
-                    print("Error capturing frame.")
-                    await asyncio.sleep(0.5)
-                    continue
-                _, img_encoded = imencode('.jpg', frame)
-                img_bytes = img_encoded.tobytes()
-                files = {'file': ('frame.jpg', img_bytes, 'image/jpeg')}
+        while True:
+            if not state.cap.isOpened():
+                print("Camera not available.")
+                await asyncio.sleep(1)
+                continue
 
-                try:
-                    response = await client.post(API_URL, files=files)
-                    if response.status_code == 200:
-                        data = response.json()
-                        img_base64 = data.get('image_base64')
-                        plate_text = data.get('plate_text')
-                        plate_crop_b64 = data.get('plate_crop_base64')
+            ret, frame = state.cap.read()
+            if not ret:
+                print("Error capturing frame.")
+                await asyncio.sleep(0.5)
+                continue
 
-                        if img_base64:
-                            image_display.src_base64 = img_base64
-                            image_display.update()
-                        if plate_text and plate_crop_b64:
-                            if plate_text != state.last_plate_text:
-                                print(f"New plate detected: {plate_text}")
-                            state.last_plate_text = plate_text
-                            state.last_plate_crop_b64 = plate_crop_b64
-                            try:
-                                img_data = base64.b64decode(plate_crop_b64)
-                                pictures_path = join(expanduser("~"), "Pictures")
-                                makedirs(pictures_path, exist_ok=True)
-                                save_path = join(pictures_path, "cropped_plate.jpg")
-                                with open(save_path, "wb") as f:
-                                    f.write(img_data)
-                                state.last_plate_save_path = save_path
-                                image_plate.src = save_path
-                                image_plate.update()
-                            except Exception as ex:
-                                print(f"Error saving/updating cropped image: {ex}")
-                    else:
-                        print(f"API response: {response.status_code}")
-                except Exception as e:
-                    print(f"Error calling API: {e}")
+            try:
+                img_base64, plate_crop_b64, plate_text = process_image(frame)
+                if img_base64:
+                    image_display.src_base64 = img_base64
+                    image_display.update()
+                if plate_text and plate_crop_b64:
+                    if plate_text != state.last_plate_text:
+                        print(f"New plate detected: {plate_text}")
+                    state.last_plate_text = plate_text
+                    state.last_plate_crop_b64 = plate_crop_b64
+                    try:
+                        img_data = base64.b64decode(plate_crop_b64)
+                        pictures_path = join(expanduser("~"), "Pictures")
+                        makedirs(pictures_path, exist_ok=True)
+                        save_path = join(pictures_path, "cropped_plate.jpg")
+                        with open(save_path, "wb") as f:
+                            f.write(img_data)
+                        state.last_plate_save_path = save_path
+                        image_plate.src = save_path
+                        image_plate.update()
+                    except Exception as ex:
+                        print(f"Error saving/updating cropped image: {ex}")
+            except Exception as e:
+                print(f"Error processing image: {e}")
 
-                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
 
     def start_camera_loop():
         asyncio.run(camera_loop())
